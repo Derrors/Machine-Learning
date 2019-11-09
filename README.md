@@ -1,6 +1,6 @@
 
 <div align=center>
-    <div style="font-size:30px">
+    <div style="font-size:48px">
         <b>Machine Learning Course</b>
     </div>
 </div>
