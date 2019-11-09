@@ -1,7 +1,7 @@
 
 <div align=center>
-    <div style="font-size:24px">
-        Machine Learning Course
+    <div style="font-size:30px">
+        <b>Machine Learning Course</b>
     </div>
 </div>
 
