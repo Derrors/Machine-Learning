@@ -238,5 +238,3 @@ class ANN(nn.Module):
     def forward(self, x):
         return self.ann(x)
 
-
-
