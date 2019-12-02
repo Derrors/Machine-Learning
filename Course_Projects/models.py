@@ -2,9 +2,11 @@
 
 import random
 import numpy as np
+
 import torch
 import torch.nn as nn
 import torch.functional as F
+
 from sklearn.model_selection import KFold
 
 
@@ -238,3 +240,107 @@ class ANN(nn.Module):
     def forward(self, x):
         return self.ann(x)
 
+
+class Naive_Bayes():
+    def __init__(self, input_x, input_y):
+        self.x = input_x
+        self.y = input_y
+        self.class_num = np.max(self.y) + 1
+        self.doc_num = [len(docs) for docs in self.x]
+        
+        vocabulary = []
+        for docs in self.x:
+            for doc in docs:
+                vocabulary.extend(doc)
+            
+        self.vocabulary = set(vocabulary)
+        self.v = len(self.vocabulary)
+
+    def calculate_accuracy(self, pred, true):
+        pred = np.argmax(pred, axis=1)
+        return np.sum(pred == true) / true.shape[0]
+
+    def multinomial(self, input_x, input_y):
+        prob_words = {}
+        for i in range(len(self.x)):
+            prob_words[i] = {}
+            docs = self.x[i]
+            words_count = 0
+            for doc in docs:
+                words_count += len(doc)
+                for token in doc:
+                    if token not in prob_words[i]:
+                        prob_words[i][token] = 1
+                    else:
+                        prob_words[i][token] += 1
+            for key in prob_words[i]:
+                prob_words[i][key] += 1
+                prob_words[i][key] /= (words_count + self.v)
+
+        prob_class = (np.array(self.doc_num) + 1) / (np.sum(self.doc_num) + self.class_num)
+
+        x, y = [], []
+        for i in range(len(input_y)):
+            x.extend(input_x[i])
+            y.extend([input_y[i]] * len(input_x[i]))
+
+        preds = []
+        for doc in x:
+            pred = []
+            for i in range(self.class_num):
+                p = np.log(prob_class[i])
+                for token in doc:
+                    if token in prob_words[i]:
+                        p += np.log(prob_words[i][token])
+                    else:
+                        p += np.log(1 / (words_count + self.v))
+                pred.append(p)
+            preds.append(pred)
+        accuracy = self.calculate_accuracy(np.asarray(preds), np.asarray(y))
+        print(accuracy)
+
+    def bernoulli(self, input_x, input_y):
+        prob_words = {}
+        for i in range(len(self.x)):
+            prob_words[i] = {}
+            docs = self.x[i]
+            for doc in docs:
+                doc = set(doc)
+                for token in doc:
+                    if token not in prob_words[i]:
+                        prob_words[i][token] = 1
+                    else:
+                        prob_words[i][token] += 1
+
+            exist_words = set(prob_words[i])
+            for token in self.vocabulary:
+                if token not in exist_words:
+                    prob_words[i][token] = 0
+
+            for key in prob_words[i]:
+                prob_words[i][key] += 1
+                prob_words[i][key] /= (self.doc_num[i] + 2)
+
+        prob_class = (np.array(self.doc_num) + 1) / (np.sum(self.doc_num) + self.class_num)
+
+        x, y = [], []
+        for i in range(len(input_y)):
+            x.extend(input_x[i])
+            y.extend([input_y[i]] * len(input_x[i]))
+
+        preds = []
+        for doc in x:
+            doc = set(doc)
+            pred = []
+            for i in range(self.class_num):
+                p = np.log(prob_class[i])
+                for token in self.vocabulary:
+                    if token in doc:
+                        p += np.log(prob_words[i][token])
+                    else :
+                        p += np.log(1 - prob_words[i][token])
+                pred.append(p)
+            preds.append(pred)
+
+        accuracy = self.calculate_accuracy(np.asarray(preds), np.asarray(y))
+        print(accuracy)
