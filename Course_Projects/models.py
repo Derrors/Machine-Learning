@@ -2,6 +2,9 @@
 
 import random
 import numpy as np
+import matplotlib.pyplot as plt 
+import matplotlib.animation as animation
+from matplotlib.colors import ListedColormap
 
 import torch
 import torch.nn as nn
@@ -25,14 +28,44 @@ class Linear_Regression():
         self.weight = np.matmul(np.matmul(np.linalg.inv(np.matmul(self.x.T, self.x)), self.x.T), self.y)
 
     def gradient_descent(self, learning_rate, epochs):
+        self.plot()
+        plt.ion()
         for e in range(epochs):
             pred = np.matmul(self.x, self.weight)
             loss, grad = self.loss_fn(pred)
             self.weight -= learning_rate * grad
 
+            # 以下为画图代码
+            plt.cla()
+            self.epoch.append(e)
+            self.loss.append(loss)
+            self.ax1.plot(self.epoch, self.loss, 'r')
+            
+            y1 = self.predict_new(self.x[0])
+            y2 = self.predict_new(self.x[-1])
+            self.ax2.scatter(self.x[:, 1], self.y, c='b')
+            self.ax2.plot([self.x[0, 1], self.x[-1, 1]], [y1, y2], 'r')
+            plt.pause(0.01)
+        plt.ioff()
+        plt.show()
+
+        
     def predict_new(self, x=[1, 1.86]):
         pred = np.matmul(x, self.weight)
         return pred
+
+    def plot(self):
+        self.fig = plt.figure(num=1, figsize=(15, 8),dpi=80)
+        self.ax1 = self.fig.add_subplot(1, 2, 1)
+        self.ax1.set_title('The loss of Linear_Regression')
+        self.ax1.set_xlabel('Epochs')
+        self.ax1.set_ylabel('Loss')
+        self.loss, self.epoch = [], []
+
+        self.ax2 = self.fig.add_subplot(1, 2, 2)
+        self.ax2.set_title('The fitted curve')
+        self.ax2.set_xlabel('Year')
+        self.ax2.set_ylabel('Price')
 
 
 class Logistic_Regression():
@@ -56,30 +89,110 @@ class Logistic_Regression():
         return accuracy
 
     def gradient_descent(self, learning_rate, epochs):
+        self.plot()
+        plt.ion()
         for e in range(epochs):
             pred = self.sigmoid(np.matmul(self.x, self.weight))
             loss, grad = self.loss_fn(self.x, self.y, pred)
             self.weight -= learning_rate * grad
-            print(loss)
+
+            # 以下为画图代码
+            plt.cla()
+            self.epoch.append(e)
+            self.loss.append(loss)
+            self.ax1.plot(self.epoch, self.loss, 'r')
+
+            exam_1, exam_2 = self.x[:, 1], self.x[:, 2]
+            x1, x2 = np.where(self.y == 0)[0], np.where(self.y == 1)[0]
+            self.ax2.scatter(exam_1[x1], exam_2[x1], c='b', marker='*')
+            self.ax2.scatter(exam_1[x2], exam_2[x2], c='b', marker='o')
+
+            x_min, x_max = np.min(exam_1), np.max(exam_1)
+            y_min = -(self.weight[0] + self.weight[1] * x_min) / self.weight[2]
+            y_max = -(self.weight[0] + self.weight[1] * x_max) / self.weight[2]
+            self.ax2.plot([x_min, x_max], [y_min, y_max], 'r')
+            plt.pause(0.01)
+        plt.ioff()
+        plt.show()
+
 
     def stochastic_gradient_descent(self, learning_rate, epochs):
         orders = list(range(self.x.shape[0]))
         random.seed(2020)
         random.shuffle(orders)
+        self.plot()
+        plt.ion()
+        i = 1
         for e in range(epochs):
             for index in orders:
                 pred = self.sigmoid(np.matmul(self.x[index], self.weight))
                 _, grad = self.loss_fn(self.x[index].reshape(1, -1), self.y[index].reshape(-1, 1), pred.reshape(-1, 1))
                 self.weight -= learning_rate * grad
 
+                # 以下为画图代码
+                plt.cla()
+                pred = self.sigmoid(np.matmul(self.x, self.weight))
+                loss, _ = self.loss_fn(self.x, self.y, pred)
+                self.epoch.append(i)
+                self.loss.append(loss)
+                self.ax1.plot(self.epoch, self.loss, 'r')
+
+                exam_1, exam_2 = self.x[:, 1], self.x[:, 2]
+                x1, x2 = np.where(self.y == 0)[0], np.where(self.y == 1)[0]
+                self.ax2.scatter(exam_1[x1], exam_2[x1], c='b', marker='*')
+                self.ax2.scatter(exam_1[x2], exam_2[x2], c='b', marker='o')
+
+                x_min, x_max = np.min(exam_1), np.max(exam_1)
+                y_min = -(self.weight[0] + self.weight[1] * x_min) / self.weight[2]
+                y_max = -(self.weight[0] + self.weight[1] * x_max) / self.weight[2]
+                self.ax2.plot([x_min, x_max], [y_min, y_max], 'r')
+                i += 1
+                plt.pause(0.01)
+        plt.ioff()
+        plt.show()
+
     def newton_method(self, epochs):
+        self.plot()
+        plt.ion()
         for e in range(epochs):
             pred = self.sigmoid(np.matmul(self.x, self.weight)).reshape(-1, 1)
             loss, grad = self.loss_fn(self.x, self.y, pred)
             H = np.matmul(self.x.T, pred * (1 - pred) * self.x)
             self.weight -= np.matmul(np.linalg.inv(H), grad)
-            print(loss)
 
+            # 以下为画图代码
+            plt.cla()
+            self.epoch.append(e)
+            self.loss.append(loss)
+            self.ax1.plot(self.epoch, self.loss, 'r')
+
+            exam_1, exam_2 = self.x[:, 1], self.x[:, 2]
+            x1, x2 = np.where(self.y == 0)[0], np.where(self.y == 1)[0]
+            self.ax2.scatter(exam_1[x1], exam_2[x1], c='b', marker='*')
+            self.ax2.scatter(exam_1[x2], exam_2[x2], c='b', marker='o')
+
+            x_min, x_max = np.min(exam_1), np.max(exam_1)
+            y_min = -(self.weight[0] + self.weight[1] * x_min) / self.weight[2]
+            y_max = -(self.weight[0] + self.weight[1] * x_max) / self.weight[2]
+            self.ax2.plot([x_min, x_max], [y_min, y_max], 'r')
+            plt.pause(0.01)
+        plt.ioff()
+        plt.show()
+
+    def plot(self):
+        self.fig = plt.figure(num=1, figsize=(15, 8),dpi=80)
+        self.ax1 = self.fig.add_subplot(1, 2, 1)
+
+        self.ax1.set_title('The loss of Logistic_Regression')
+        self.ax1.set_xlabel('Epochs')
+        self.ax1.set_ylabel('Loss')
+        self.loss, self.epoch = [], []
+
+        self.ax2 = self.fig.add_subplot(1, 2, 2)
+        self.ax2.set_title('The classification')
+        self.ax2.set_xlabel('exam_1')
+        self.ax2.set_ylabel('exam_2')
+        
 
 class Softmax_Regression():
     def __init__(self, input_x, input_y):
@@ -103,22 +216,93 @@ class Softmax_Regression():
         return accuracy
 
     def gradient_descent(self, learning_rate, epochs):
+        self.plot()
+        plt.ion()
         for e in range(epochs):
             pred = self.softmax(np.matmul(self.x, self.weight))
             loss, grad = self.loss_fn(self.x, self.y, pred)
             self.weight -= learning_rate * grad
-            print(loss)
+            
+            # 以下为画图代码
+            plt.cla()
+            self.epoch.append(e)
+            self.loss.append(loss)
+            self.ax1.plot(self.epoch, self.loss, 'r')
+
+            x_1, x_2 = self.x[:, 1], self.x[:, 2]
+            index_1, index_2, index_3 = np.where(self.y[:, 0] == 1)[0], np.where(self.y[:, 1] == 1)[0], np.where(self.y[:, 2] == 1)[0]
+            self.ax2.scatter(x_1[index_1], x_2[index_1], c='r', marker='*', facecolors='none')
+            self.ax2.scatter(x_1[index_2], x_2[index_2], c='g', marker='o', facecolors='none')
+            self.ax2.scatter(x_1[index_3], x_2[index_3], c='b', marker='x', facecolors='none')
+
+            x1_min, x2_min = np.min(self.x, axis=0)[1: ] - 0.5
+            x1_max, x2_max = np.max(self.x, axis=0)[1: ] + 0.5
+            _x, _y = np.meshgrid(np.arange(x1_min, x1_max, 0.01), np.arange(x2_min, x2_max, 0.01))
+            pred_x = np.c_[np.zeros((_x.size, )), _x.flatten(), _y.flatten()]
+            pred_y = np.argmax(self.softmax(np.matmul(pred_x, self.weight)), axis=1).reshape(_x.shape)
+
+            cmp = ListedColormap(colors=['yellow', 'green', 'red'])
+            self.ax2.contourf(_x, _y, pred_y, cmap=cmp, alpha=0.5)
+            plt.pause(0.01)
+        plt.ioff()
+        plt.show() 
+        
 
     def stochastic_gradient_descent(self, learning_rate, epochs):
         orders = list(range(self.x.shape[0]))
         random.seed(2020)
         random.shuffle(orders)
+        i = 1
+        self.plot()
+        plt.ion()
         for e in range(epochs):
             for index in orders:
                 pred = np.matmul(self.x[index], self.weight)
                 pred = (np.exp(pred) / np.sum(np.exp(pred)))
                 _, grad = self.loss_fn(self.x[index].reshape(1, -1), self.y[index].reshape(1, -1), pred.reshape(1, -1))
                 self.weight -= learning_rate * grad
+            
+                # 以下为画图代码
+                plt.cla()
+                pred = np.matmul(self.x, self.weight)
+                pred = (np.exp(pred) / np.sum(np.exp(pred)))
+                loss, _ = self.loss_fn(self.x, self.y, pred)
+                self.epoch.append(i)
+                self.loss.append(loss)
+                self.ax1.plot(self.epoch, self.loss, 'r')
+
+                x_1, x_2 = self.x[:, 1], self.x[:, 2]
+                index_1, index_2, index_3 = np.where(self.y[:, 0] == 1)[0], np.where(self.y[:, 1] == 1)[0], np.where(self.y[:, 2] == 1)[0]
+                self.ax2.scatter(x_1[index_1], x_2[index_1], c='r', marker='*', facecolors='none')
+                self.ax2.scatter(x_1[index_2], x_2[index_2], c='g', marker='o', facecolors='none')
+                self.ax2.scatter(x_1[index_3], x_2[index_3], c='b', marker='x', facecolors='none')
+
+                x1_min, x2_min = np.min(self.x, axis=0)[1: ] - 0.5
+                x1_max, x2_max = np.max(self.x, axis=0)[1: ] + 0.5
+                _x, _y = np.meshgrid(np.arange(x1_min, x1_max, 0.01), np.arange(x2_min, x2_max, 0.01))
+                pred_x = np.c_[np.zeros((_x.size, )), _x.flatten(), _y.flatten()]
+                pred_y = np.argmax(self.softmax(np.matmul(pred_x, self.weight)), axis=1).reshape(_x.shape)
+
+                cmp = ListedColormap(colors=['yellow', 'green', 'red'])
+                self.ax2.contourf(_x, _y, pred_y, cmap=cmp, alpha=0.5)
+                i += 1
+                plt.pause(0.01)
+        plt.ioff()
+        plt.show() 
+
+    def plot(self):
+        self.fig = plt.figure(num=1, figsize=(15, 8),dpi=80)
+        self.ax1 = self.fig.add_subplot(1, 2, 1)
+
+        self.ax1.set_title('The loss of Softmax_Regression')
+        self.ax1.set_xlabel('Epochs')
+        self.ax1.set_ylabel('Loss')
+        self.loss, self.epoch = [], []
+
+        self.ax2 = self.fig.add_subplot(1, 2, 2)
+        self.ax2.set_title('The classification')
+        self.ax2.set_xlabel('x_1')
+        self.ax2.set_ylabel('x_2')
 
 
 class Perceptron():
@@ -145,11 +329,51 @@ class Perceptron():
         orders = list(range(self.x.shape[0]))
         random.seed(2020)
         random.shuffle(orders)
+        i = 1
+        self.plot()
+        plt.ion()
         for e in range(epochs):
             for index in orders:
                 pred = self.hypothesis(np.matmul(self.x[index], self.weight))
                 _, grad = self.loss_fn(self.x[index].reshape(1, -1), self.y[index].reshape(1, -1), pred.reshape(1, -1))
                 self.weight -= learning_rate * grad
+
+                # 以下为画图代码
+                plt.cla()
+                pred = self.hypothesis(np.matmul(self.x, self.weight))
+                loss, _ = self.loss_fn(self.x, self.y, pred)
+                self.epoch.append(i)
+                self.loss.append(loss)
+                self.ax1.plot(self.epoch, self.loss, 'r')
+
+                exam_1, exam_2 = self.x[:, 1], self.x[:, 2]
+                x1, x2 = np.where(self.y == 0)[0], np.where(self.y == 1)[0]
+                self.ax2.scatter(exam_1[x1], exam_2[x1], c='b', marker='*')
+                self.ax2.scatter(exam_1[x2], exam_2[x2], c='b', marker='o')
+
+                x_min, x_max = np.min(exam_1), np.max(exam_1)
+                y_min = -(self.weight[0] + self.weight[1] * x_min) / self.weight[2]
+                y_max = -(self.weight[0] + self.weight[1] * x_max) / self.weight[2]
+                self.ax2.plot([x_min, x_max], [y_min, y_max], 'r')
+                i += 1
+                plt.pause(0.01)
+        plt.ioff()
+        plt.show() 
+    
+    def plot(self):
+        self.fig = plt.figure(num=1, figsize=(15, 8),dpi=80)
+        self.ax1 = self.fig.add_subplot(1, 2, 1)
+
+        self.ax1.set_title('The loss of Perceptron')
+        self.ax1.set_xlabel('Epochs')
+        self.ax1.set_ylabel('Loss')
+        self.loss, self.epoch = [], []
+
+        self.ax2 = self.fig.add_subplot(1, 2, 2)
+        self.ax2.set_title('The classification')
+        self.ax2.set_xlabel('exam_1')
+        self.ax2.set_ylabel('exam_2')
+        
 
 
 class Multi_Class_Perceptron():
@@ -173,11 +397,55 @@ class Multi_Class_Perceptron():
         orders = list(range(self.x.shape[0]))
         random.seed(2020)
         random.shuffle(orders)
+        self.plot()
+        plt.ion()
+        i = 1
         for e in range(epochs):
             for index in orders:
                 pred = np.matmul(self.x[index], self.weight)
                 _, grad = self.loss_fn(self.x[index].reshape(1, -1), self.y[index].reshape(1, -1), pred.reshape(1, -1))
                 self.weight -= learning_rate * grad
+
+                # 以下为画图代码
+                plt.cla()
+                pred = np.matmul(self.x, self.weight)
+                loss, _ = self.loss_fn(self.x, self.y, pred)
+                self.epoch.append(i)
+                self.loss.append(loss)
+                self.ax1.plot(self.epoch, self.loss, 'r')
+
+                x_1, x_2 = self.x[:, 1], self.x[:, 2]
+                index_1, index_2, index_3 = np.where(self.y[:, 0] == 1)[0], np.where(self.y[:, 1] == 1)[0], np.where(self.y[:, 2] == 1)[0]
+                self.ax2.scatter(x_1[index_1], x_2[index_1], c='r', marker='*', facecolors='none')
+                self.ax2.scatter(x_1[index_2], x_2[index_2], c='g', marker='o', facecolors='none')
+                self.ax2.scatter(x_1[index_3], x_2[index_3], c='b', marker='x', facecolors='none')
+
+                x1_min, x2_min = np.min(self.x, axis=0)[1: ] - 0.5
+                x1_max, x2_max = np.max(self.x, axis=0)[1: ] + 0.5
+                _x, _y = np.meshgrid(np.arange(x1_min, x1_max, 0.01), np.arange(x2_min, x2_max, 0.01))
+                pred_x = np.c_[np.zeros((_x.size, )), _x.flatten(), _y.flatten()]
+                pred_y = np.argmax(np.matmul(pred_x, self.weight), axis=1).reshape(_x.shape)
+
+                cmp = ListedColormap(colors=['yellow', 'green', 'red'])
+                self.ax2.contourf(_x, _y, pred_y, cmap=cmp, alpha=0.5)
+                i += 1
+                plt.pause(0.01)
+        plt.ioff()
+        plt.show() 
+
+    def plot(self):
+        self.fig = plt.figure(num=1, figsize=(15, 8),dpi=80)
+        self.ax1 = self.fig.add_subplot(1, 2, 1)
+
+        self.ax1.set_title('The loss of Multi_Class_Perceptron')
+        self.ax1.set_xlabel('Epochs')
+        self.ax1.set_ylabel('Loss')
+        self.loss, self.epoch = [], []
+
+        self.ax2 = self.fig.add_subplot(1, 2, 2)
+        self.ax2.set_title('The classification')
+        self.ax2.set_xlabel('x_1')
+        self.ax2.set_ylabel('x_2')
 
 
 class Artifical_Neural_Network():
@@ -211,6 +479,8 @@ class Artifical_Neural_Network():
     
     def gradient_descent(self, learning_rate, epochs, n_folds):
         kfold = KFold(n_splits=n_folds, random_state=1)
+        self.plot()
+        plt.ion()
         for e in range(epochs):
             for k, (train, test) in enumerate(kfold.split(self.x)):
                 output_hidden = self.sigmoid(np.matmul(self.x[train], self.w1) + self.b1)
@@ -220,8 +490,51 @@ class Artifical_Neural_Network():
                 self.b2 -= learning_rate * grad_b2
                 self.w1 -= learning_rate * grad_w1
                 self.b1 -= learning_rate * grad_b1
+
             accuracy = self.calculate_accuracy(self.x, self.y)
-            print(accuracy)
+            
+            # 以下为画图代码
+            plt.cla()
+            pred_hidden = self.sigmoid(np.matmul(self.x, self.w1) + self.b1)
+            pred = self.sigmoid(np.matmul(pred_hidden, self.w2) + self.b2)
+            loss, _, _, _, _ = self.loss_fn(self.x, self.y, pred_hidden, pred)
+            self.epoch.append(e)
+            self.loss.append(loss)
+            self.ax1.plot(self.epoch, self.loss, 'r')
+
+            x_1, x_2 = self.x[:, 1], self.x[:, 2]
+            index_1, index_2, index_3 = np.where(self.y[:, 0] == 1)[0], np.where(self.y[:, 1] == 1)[0], np.where(self.y[:, 2] == 1)[0]
+            self.ax2.scatter(x_1[index_1], x_2[index_1], c='r', marker='*', facecolors='none')
+            self.ax2.scatter(x_1[index_2], x_2[index_2], c='g', marker='o', facecolors='none')
+            self.ax2.scatter(x_1[index_3], x_2[index_3], c='b', marker='x', facecolors='none')
+
+            x1_min, x2_min = np.min(self.x, axis=0)[1: ] - 0.5
+            x1_max, x2_max = np.max(self.x, axis=0)[1: ] + 0.5
+            _x, _y = np.meshgrid(np.arange(x1_min, x1_max, 0.01), np.arange(x2_min, x2_max, 0.01))
+            pred_x = np.c_[np.zeros((_x.size, )), _x.flatten(), _y.flatten()]
+            hidden = self.sigmoid(np.matmul(pred_x, self.w1) + self.b1)
+            pred_y = np.argmax(self.sigmoid(np.matmul(hidden, self.w2) + self.b2), axis=1).reshape(_x.shape)
+
+            cmp = ListedColormap(colors=['yellow', 'green', 'red'])
+            self.ax2.contourf(_x, _y, pred_y, cmap=cmp, alpha=0.5)
+            plt.pause(0.01)
+        plt.ioff()
+        plt.show()
+
+
+    def plot(self):
+        self.fig = plt.figure(num=1, figsize=(15, 8),dpi=80)
+        self.ax1 = self.fig.add_subplot(1, 2, 1)
+
+        self.ax1.set_title('The loss of Artifical_Neural_Network')
+        self.ax1.set_xlabel('Epochs')
+        self.ax1.set_ylabel('Loss')
+        self.loss, self.epoch = [], []
+
+        self.ax2 = self.fig.add_subplot(1, 2, 2)
+        self.ax2.set_title('The classification')
+        self.ax2.set_xlabel('x_1')
+        self.ax2.set_ylabel('x_2')
 
 
 class ANN(nn.Module):

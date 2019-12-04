@@ -74,62 +74,54 @@ def build_input(path):
     
     return x, y
 
-
-if __name__ == "__main__":
-    train_x, train_y = build_input('./data/Tsinghua/train/')
-    test_x, test_y = build_input('./data/Tsinghua/test/')
-    
-    model = Naive_Bayes(train_x, train_y)
-    model.multinomial(test_x, test_y)
-
-'''
-Project 1:
+def Project_1():
     x, y = read_data('price')
     x = data_preprocess(x)
     model = Linear_Regression(x, y)
-    model.gradient_descent(0.03, 100)
+    model.gradient_descent(0.003, 100)
     model.predict_new()
 
-Project 2:
-
+def Project_2():
     x, y = read_data('exam')
     x = data_preprocess(x)
     model = Logistic_Regression(x, y)
-    model.gradient_descent(0.05, 200)
+    model.gradient_descent(0.003, 150)
+    # model.stochastic_gradient_descent(0.1, 5)
+    # model.newton_method(20)
     print(model.calculate_accuracy())
 
-Project 3:
-    x, y = read_data('exam')
-    # x, y = read_data('iris')
+def Project_3():
+    x, y = read_data('iris')
     x = data_preprocess(x)
     y = convert_to_one_hot(y)
     model = Softmax_Regression(x, y)
-    model.gradient_descent(0.001, 200)
+    #model.gradient_descent(0.001, 150)
+    model.stochastic_gradient_descent(0.03, 3)
     print(model.calculate_accuracy())
 
-Project 4:
+def Project_4_1():
     x, y = read_data('exam')
     x = data_preprocess(x)
     model = Perceptron(x, y)
-    model.stochastic_gradient_descent(0.001, 100)
+    model.stochastic_gradient_descent(0.03, 5)
     print(model.calculate_accuracy())
-    ---------------------------------------------
+
+def Project_4_2():
     x, y = read_data('iris')
     x = data_preprocess(x)
     y = convert_to_one_hot(y)
     model = Multi_Class_Perceptron(x, y)
-    model.stochastic_gradient_descent(0.001, 100)
-    print(model.calculate_accuracy())
+    model.stochastic_gradient_descent(0.03, 2)
+    print(model.calculate_accuracy())   
 
-Project 5:
-    x, y = read_data('exam')
-    # x, y = read_data('iris')
+def Project_5_1():
+    x, y = read_data('iris')
     x = data_preprocess(x)
     y = convert_to_one_hot(y)
     model = Artifical_Neural_Network(x, y, 10)
-    model.gradient_descent(0.003, 200, 5)
+    model.gradient_descent(0.03, 200, 5)
 
-Project 6:
+def Project_6():
     x, y = read_data('iris')
     x = torch.tensor(data_preprocess(x), dtype=torch.float)
     y = torch.tensor(convert_to_one_hot(y), dtype=torch.long)
@@ -151,11 +143,14 @@ Project 6:
         loss.backward()
         optimzer.step()
         print(loss, accuracy)
-
-Project 7:
+    
+def Project_7():
     train_x, train_y = build_input('./data/Tsinghua/train/')
     test_x, test_y = build_input('./data/Tsinghua/test/')
     
     model = Naive_Bayes(train_x, train_y)
     model.multinomial(test_x, test_y)
-'''
+
+
+if __name__ == "__main__":
+    Project_7()
